@@ -72,22 +72,25 @@ my source code library
 
 
 
-
-
-
-
-
-
-
-
 日志级别
+
 内核的日志级别
+
 宏名称	调试级别	说明
+
 KERN_EMERG	0	紧急消息（导致系统错误）
+
 KERN_ALERT	1	必须立即处理的错误
+
 KERN_CRIT	2	严重错误（硬件或软件）
+
 KERN_ERR	3	错误状况（一般出现在驱动程序上）
+
 KEER_WARNING	4	警告级别（可能导致错误）
+
 KERN_NOTICE	5	不是错误，但是一个重要状况
+
 KERN_INFO	6	报告消息
+
 KERN_DEBUG	7	仅用于调试的信息
+
