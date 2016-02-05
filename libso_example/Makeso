@@ -1,0 +1,38 @@
+CC = gcc
+CXX = g++
+AR = ar
+LD = ld
+
+CFLAGS = -g -Wall -fPIC -I./
+
+POBJS = a.o b.o
+
+MY_SO_OBJS  = $(POBJS)
+MY_TEST_OBJS= test.o
+
+MY_SO  = libmy.so
+MY_TEST_SO1= test_so1
+MY_TEST_SO2= test_so2
+
+TARGET_ALL = $(MY_LIB) $(MY_SO) $(MY_TEST) $(MY_TEST_SO1) $(MY_TEST_SO2)
+
+all: $(TARGET_ALL)
+
+%o:%c
+	$(CC) -c $(CFLAGS) $< -o $@
+
+%o:%cpp
+	$(CXX) -c $(CFLAGS) $< -o $@
+
+$(MY_SO): $(MY_SO_OBJS)
+	#$(LD) -shared -soname $@ -o $@.1.0 $^
+	$(LD) -shared -soname $@ -o $@ $^
+
+$(MY_TEST_SO1): $(MY_TEST_OBJS) $(MY_SO)
+	$(CXX) -o $@ $^
+
+$(MY_TEST_SO2): $(MY_TEST_OBJS)
+	$(CXX) -o $@ $^ -L./ -lmy
+
+clean:
+	rm -f *.o $(TARGET_ALL)

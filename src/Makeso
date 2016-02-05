@@ -1,0 +1,29 @@
+CC = gcc
+CXX = g++
+AR = ar
+LD = ld
+
+CFLAGS = -g -Wall -I./ -fPIC
+
+POBJS = avp_queue.o avp_stack.o avp_mutex.o avp_threads_group.o avp_async_work_queue.o avp_mem.o \
+    avp_list_double.o avp_list_single.o avp_ini.o avp_log.o 
+
+SO_OBJS = 
+
+AVP_SO = libavp.so
+
+TARGET_ALL = $(AVP_SO)
+
+all: $(TARGET_ALL)
+
+%o:%c
+	$(CC) -c $(CFLAGS) $< -o $@
+
+%o:%cpp
+	$(CXX) -c $(CFLAGS) $< -o $@
+
+$(AVP_SO): $(POBJS) $(SO_OBJS)
+	$(CXX) -o $@ $^ -lpthread
+
+clean:
+	rm -f *.o $(TARGET_ALL)
