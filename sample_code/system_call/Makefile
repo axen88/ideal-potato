@@ -18,6 +18,7 @@ DIR_SCAN_OBJS = dir_scan.o
 SERVICE_DAEMON_OBJS = service_daemon.o
 AIO_RW_OBJS = aio_rw.o
 AIO_CALLBACK_OBJS = aio_callback.o
+FLOCK_OBJS = flock.o
 
 STRTOL = strtol
 SHMMUTEX = shmmutex
@@ -30,10 +31,12 @@ DIR_SCAN = dir_scan
 SERVICE_DAEMON = service_daemon
 AIO_RW = aio_rw
 AIO_CALLBACK = aio_callback
+FLOCK = flock
 
-TARGET_ALL = $(READ_STR) $(STRTOL) $(SHMMUTEX) $(FORK) $(PTHREAD_SIGNAL) \
+
+TARGET_ALL = $(STRTOL) $(SHMMUTEX) $(FORK) $(PTHREAD_SIGNAL) \
     $(POPEN_READ) $(POPEN_WRITE) $(GET_PROCESS_ID) $(DIR_SCAN) $(SERVICE_DAEMON) \
-    $(AIO_RW) $(AIO_CALLBACK)
+    $(AIO_RW) $(AIO_CALLBACK) $(FLOCK)
 
 all: $(TARGET_ALL)
 
@@ -72,6 +75,9 @@ $(AIO_RW): $(POBJS) $(AIO_RW_OBJS)
 
 $(AIO_CALLBACK): $(POBJS) $(AIO_CALLBACK_OBJS)
 	$(CXX) -o $@ $^ -lrt
+
+$(FLOCK): $(POBJS) $(FLOCK_OBJS)
+	$(CXX) -o $@ $^ 
 
 clean:
 	rm -f *.o $(TARGET_ALL)

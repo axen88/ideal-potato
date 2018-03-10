@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 
 # 本脚本生成的日志
 LOG_DIR=.
-LOG_NAME=$0.log
+LOG_NAME=$2.log
 LOG_FULL_NAME=$LOG_DIR/$LOG_NAME
 
 # 重命名日志文件
