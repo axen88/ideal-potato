@@ -1,62 +1,37 @@
+
 CC = gcc
 CXX = g++
 AR = ar
 LD = ld
 
-CFLAGS = -g -Wall -I./
+PUBLIC_DIR := .
 
-POBJS = 
+CFLAGS = -I. -Wall -g -Wno-unused -fPIC  -D__EN_FILE_IF__
 
-AVP_LIST_DOUBLE = test_list_double
-AVP_LIST_SINGLE = test_list_single
-AVP_INI = test_ini
-AVP_LOG = test_log
-AVP_MEM = test_mem
-AVP_QUEUE_C = test_queue_c
-AVP_QUEUE_CPP = test_queue_cpp
-AVP_STACK_C = test_stack_c
-AVP_STACK_CPP = test_stack_cpp
-AVP_THREADS_GROUP = test_threads_group
-AVP_ASYNC_WORK_QUEUE = test_async_work_queue
+LIB_OBJS = $(PUBLIC_DIR)/avl.o $(PUBLIC_DIR)/cmd_ui.o \
+	    $(PUBLIC_DIR)/log.o  $(PUBLIC_DIR)/utils.o $(PUBLIC_DIR)/file_if.o \
+	    
+	    
 
-TARGET_ALL = $(AVP_LIST_DOUBLE) $(AVP_LIST_SINGLE) $(AVP_INI) $(AVP_LOG) $(AVP_MEM) $(AVP_QUEUE_C) $(AVP_QUEUE_CPP) \
-     $(AVP_STACK_C) $(AVP_STACK_CPP) $(AVP_THREADS_GROUP) \
-    $(AVP_ASYNC_WORK_QUEUE) 
+PUBLIC_LIB = libpublic.a
+
+PUBLIC_SO = libpublic.so
+
+TARGET_ALL = $(PUBLIC_LIB) $(PUBLIC_SO)
 
 all: $(TARGET_ALL)
 
-$(AVP_LIST_DOUBLE):
-	gcc -o $@ avp_list_double.c $(CFLAGS) -D_EN_DEBUG_
+%o:%c
+	$(CC) -c $(CFLAGS) $< -o $@
 
-$(AVP_LIST_SINGLE):
-	gcc -o $@ avp_list_single.c $(CFLAGS) -D_EN_DEBUG_
+%o:%cpp
+	$(CXX) -c $(CFLAGS) $< -o $@
+
+$(PUBLIC_LIB): $(LIB_OBJS)
+	$(AR) rcs $@ $^
 	
-$(AVP_INI):
-	gcc -o $@ avp_ini.c $(CFLAGS) -D_EN_DEBUG_
-	
-$(AVP_LOG):
-	gcc -o $@ avp_log.c avp_mutex.c $(CFLAGS) -D_EN_DEBUG_ -lpthread
-	
-$(AVP_MEM):
-	gcc -o $@ avp_mem.c avp_mutex.c $(CFLAGS) -D_EN_DEBUG_ -lpthread
-	
-$(AVP_QUEUE_C):
-	gcc -o $@ avp_queue.c avp_mutex.c $(CFLAGS) -D_EN_DEBUG_ -lpthread
-	
-$(AVP_QUEUE_CPP):
-	g++ -o $@ avp_queue.cpp avp_mutex.c $(CFLAGS) -D_EN_DEBUG_ -lpthread
-	
-$(AVP_STACK_C):
-	gcc -o $@ avp_stack.c avp_mutex.c $(CFLAGS) -D_EN_DEBUG_ -lpthread
-	
-$(AVP_STACK_CPP):
-	g++ -o $@ avp_stack.cpp avp_mutex.c $(CFLAGS) -D_EN_DEBUG_ -lpthread
-	
-$(AVP_THREADS_GROUP):
-	gcc -o $@ avp_threads_group.c $(CFLAGS) -D_EN_DEBUG_ -lpthread
-	
-$(AVP_ASYNC_WORK_QUEUE):
-	g++ -o $@ avp_async_work_queue.cpp avp_mutex.c avp_queue.c avp_threads_group.c $(CFLAGS) -D_EN_ASYNC_ -lpthread
+$(PUBLIC_SO): $(LIB_OBJS)
+	$(LD) -shared -soname $@ -o $@ $^
 	
 clean:
-	rm -f *.o $(TARGET_ALL)
+	rm -f $(LIB_OBJS) $(TARGET_ALL)

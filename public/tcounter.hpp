@@ -1,11 +1,11 @@
 #ifndef _COUNTER_HPP_
 #define _COUNTER_HPP_
 
-class CTCounter
+class TCounter
 {
 public:
-    CTCounter(long v_cnt = 0):m_counter(v_cnt){}
-    ~CTCounter();
+    TCounter(long v_cnt = 0):m_counter(v_cnt){}
+    ~TCounter();
     
     long Get(void)
     {
@@ -35,7 +35,7 @@ public:
     
 private:
     long m_counter;
-}; /* End of CTCounter */
+}; /* End of TCounter */
 
 
 #endif /* End of _COUNTER_HPP_ */

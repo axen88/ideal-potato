@@ -7,7 +7,7 @@
 
 #include "avp_queue.h"
 #include "avp_threads_group.h"
-#include "avp_async_work_queue.hpp"
+#include "async_work_queue.hpp"
 
 void *ThreadWork(void *v_pObj)
 {
