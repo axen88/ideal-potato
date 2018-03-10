@@ -53,7 +53,7 @@ public:
     int TryGetTask(CTAWQTask **v_ppTask);
 
 private:
-    void *m_pRunQ;
+    QUEUE_S *m_pRunQ;
     void *m_pEndQ;
     void *m_pThreadsGroup;
     int m_stopped;

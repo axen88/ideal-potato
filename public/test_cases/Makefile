@@ -18,7 +18,7 @@ TEST_ASYNC_WORK_QUEUE = test_async_work_queue
  #    $(TEST_STACK) $(TEST_ASYNC_WORK_QUEUE) 
  
 TARGET_ALL = $(TEST_INI) $(TEST_LOG) $(TEST_CMM)  $(TEST_QUEUE)\
-     $(TEST_STACK)  
+     $(TEST_STACK) 
 
 all: $(TARGET_ALL)
 
@@ -38,7 +38,7 @@ $(TEST_STACK):
 	gcc -o $@ test_stack.c $(CFLAGS) -lpthread
 	
 $(TEST_ASYNC_WORK_QUEUE):
-	g++ -o $@ test_async_work_queue.cpp $(CFLAGS) -lpthread
+	g++ -o $@ test_async_work_queue.cpp ../async_work_queue.cpp $(CFLAGS) -lpthread
 	
 clean:
 	rm -f *.o $(TARGET_ALL)

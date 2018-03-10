@@ -5,9 +5,9 @@
 
 #include <unistd.h>
 
-#include "avp_queue.h"
-#include "avp_threads_group.h"
+#include "os_adapter.h"
 #include "async_work_queue.hpp"
+#include "queue.h"
 
 void *ThreadWork(void *v_pObj)
 {

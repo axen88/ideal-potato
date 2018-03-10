@@ -1,4 +1,7 @@
 
+#include "../os_adapter.h"
+#include "../async_work_queue.hpp"
+
 CTAsyncWorkQueue *g_pAWQ = NULL;
 int g_taskID = 0;
 
@@ -45,10 +48,41 @@ void *ThreadGetTask(void *)
     return NULL;
 }
 
+#define THREADS_NUM  2
+
+void create_multi_threads(os_thread_t *tid, int tid_num,
+    void *(*func)(void *), void *para, char *name)
+{
+    int i;
+
+    for (i = 0; i < tid_num; i++)
+    {
+        tid[i] = INVALID_TID;
+    }
+    
+    for (i = 0; i < tid_num; i++)
+    {
+        tid[i] = thread_create(func, para, name);
+    }
+}
+
+void destroy_multi_threads(os_thread_t *tid, int tid_num)
+{
+    int i;
+    
+    for (i = 0; i < tid_num; i++)
+    {
+        if (tid[i] != INVALID_TID)
+        {
+            thread_destroy(tid[i], 0);
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
-    void *pThreadsPut = NULL;
-    void *pThreadsGet = NULL;
+    os_thread_t thread1[THREADS_NUM];
+    os_thread_t thread2[THREADS_NUM];
 
     g_pAWQ = new CTAsyncWorkQueue();
     if (NULL == g_pAWQ)
@@ -65,31 +99,16 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    pThreadsPut = ThreadsGroupCreate(2, ThreadPutTask, NULL);
-    if (NULL == pThreadsPut)
-    {
-        printf("Create threads put group failed.\n");
-        delete g_pAWQ;
-        g_pAWQ = NULL;
-        return -1;
-    }
-    
-    pThreadsGet = ThreadsGroupCreate(2, ThreadGetTask, NULL);
-    if (NULL == pThreadsGet)
-    {
-        printf("Create threads get group failed.\n");
-        delete g_pAWQ;
-        g_pAWQ = NULL;
-        return -1;
-    }
+    create_multi_threads(thread1, THREADS_NUM, ThreadPutTask, NULL, NULL);
+    create_multi_threads(thread2, THREADS_NUM, ThreadGetTask, NULL, NULL);
 
     sleep(10);
 
     delete g_pAWQ;
     g_pAWQ = NULL;
 
-    ThreadsGroupDestroy(pThreadsPut, 1, 0);
-    ThreadsGroupDestroy(pThreadsGet, 1, 0);
+    destroy_multi_threads(thread1, THREADS_NUM);
+    destroy_multi_threads(thread2, THREADS_NUM);
 
     printf("Test finished.\n");
     
