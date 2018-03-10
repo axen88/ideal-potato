@@ -1,6 +1,8 @@
-#ifdef _EN_DEBUG_
 
 #include <stdio.h>
+
+#include "../os_adapter.h"
+#include "../cmm/cmm.h"
 
 int main(int argc, char *argv[])
 {
@@ -31,5 +33,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-#endif
 

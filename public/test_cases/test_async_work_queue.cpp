@@ -1,4 +1,3 @@
-#ifdef _EN_ASYNC_
 
 CTAsyncWorkQueue *g_pAWQ = NULL;
 int g_taskID = 0;
@@ -97,5 +96,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-#endif
 

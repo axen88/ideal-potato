@@ -1,10 +1,11 @@
 
-#ifdef _EN_DEBUG_
 
 #include <stdio.h>
 
+#include "../ini.h"
+
 #define TEST_BUF_SIZE 256
-#define TEST_INI_FILE "config\\sample.ini"
+#define TEST_INI_FILE argv[1]
 
 int main(int argc, char *argv[])
 {
@@ -107,5 +108,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-#endif
 

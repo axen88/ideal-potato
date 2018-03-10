@@ -1,6 +1,8 @@
-#ifdef _EN_DEBUG_
 
 #include <stdio.h>
+
+#include "../os_adapter.h"
+#include "../stack.h"
 
 int main(int argc, char *argv[])
 {
@@ -27,19 +29,6 @@ int main(int argc, char *argv[])
         printf("Push ok. [msg: %ld, size: %d]\n", msg, StackGetSize(p));
     }
     
-    msg = 15;
-    while (msg--)
-    {
-        if (StackPopPush(p, (void *)msg, &pMsg) < 0)
-        {
-            printf("----------StackPopPush failed-----------\n");
-            break;
-        }
-
-        printf("PopPush ok. [msgPop: %ld, msgPush: %ld, size: %d]\n",
-            (long)pMsg, msg, StackGetSize(p));
-    }
-    
     msg = 60;
     while (msg--)
     {
@@ -58,5 +47,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-#endif
 
