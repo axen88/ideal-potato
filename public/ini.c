@@ -8,7 +8,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "avp_ini.h"
+#include "ini.h"
 
 #define INI_MAX_FILE_SIZE (1024 * 16)
 #define INT_VALUE_LEN (32)

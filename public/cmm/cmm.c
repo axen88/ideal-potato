@@ -4,9 +4,9 @@
 
 #include <stdlib.h>
 
-#include "avp_mutex.h"
+#include "../os_adapter.h"
 
-static OSP_CS g_csMem;
+static os_mutex_t g_mutex;
 static unsigned long long g_totalMem = 0;
 static unsigned long long g_maxMem = 0;
 
@@ -14,16 +14,16 @@ void MemInit(void)
 {
     g_totalMem = 0;
     g_maxMem = 0;
-    CSInit(&g_csMem);
+    OS_MUTEX_INIT(&g_mutex);
 }
 
 unsigned long long MemGetTotal(void)
 {
     unsigned long long size = 0;
 
-    CSEnter(&g_csMem);
+    OS_MUTEX_LOCK(&g_mutex);
     size = g_totalMem;
-    CSLeave(&g_csMem);
+    OS_MUTEX_UNLOCK(&g_mutex);
 
     return size;
 }
@@ -33,9 +33,9 @@ unsigned long long MemGetMax(void)
 {
     unsigned long long size = 0;
 
-    CSEnter(&g_csMem);
+    OS_MUTEX_LOCK(&g_mutex);
     size = g_maxMem;
-    CSLeave(&g_csMem);
+    OS_MUTEX_UNLOCK(&g_mutex);
 
     return size;
 }
@@ -44,11 +44,11 @@ unsigned long long MemExit(void)
 {
     unsigned long long size = 0;
 
-    CSEnter(&g_csMem);
+    OS_MUTEX_LOCK(&g_mutex);
     size = g_totalMem;
-    CSLeave(&g_csMem);
+    OS_MUTEX_UNLOCK(&g_mutex);
     
-    CSDestroy(&g_csMem);
+    OS_MUTEX_DESTROY(&g_mutex);
 
     return size;
 }
@@ -58,14 +58,14 @@ void *MemAlloc(unsigned int v_size)
     void *pMem = malloc(v_size);
     if (NULL != pMem)
     {
-        CSEnter(&g_csMem);
+        OS_MUTEX_LOCK(&g_mutex);
         g_totalMem += v_size;
         if (g_maxMem < g_totalMem)
         {
             g_maxMem = g_totalMem;
         }
         
-        CSLeave(&g_csMem);
+        OS_MUTEX_UNLOCK(&g_mutex);
     }
 
     return pMem;
@@ -79,9 +79,9 @@ void MemFree(void *v_pMem, unsigned int v_size)
     }
     
     free(v_pMem);
-    CSEnter(&g_csMem);
+    OS_MUTEX_LOCK(&g_mutex);
     g_totalMem -= v_size;
-    CSLeave(&g_csMem);
+    OS_MUTEX_UNLOCK(&g_mutex);
 }
 
 void *MemAlignedAlloc(unsigned int v_size, unsigned int v_alignment)
@@ -99,14 +99,14 @@ void *MemAlignedAlloc(unsigned int v_size, unsigned int v_alignment)
 
     if (NULL != pMem)
     {
-        CSEnter(&g_csMem);
+        OS_MUTEX_LOCK(&g_mutex);
         g_totalMem += v_size;
         if (g_maxMem < g_totalMem)
         {
             g_maxMem = g_totalMem;
         }
         
-        CSLeave(&g_csMem);
+        OS_MUTEX_UNLOCK(&g_mutex);
     }
 
     return pMem;
@@ -125,9 +125,9 @@ void MemAlignedFree(void *v_pMem, unsigned int v_size)
     free(v_pMem);
 #endif
 
-    CSEnter(&g_csMem);
+    OS_MUTEX_LOCK(&g_mutex);
     g_totalMem -= v_size;
-    CSLeave(&g_csMem);
+    OS_MUTEX_UNLOCK(&g_mutex);
 }
 
 

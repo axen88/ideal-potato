@@ -8,18 +8,87 @@ extern "C" {
 
 typedef enum tagQUEUE_ERROR_CODE_E
 {
-    ERR_QUEUE_MALLOC = 100,
-    ERR_QUEUE_INVALID_PARA,
-    ERR_QUEUE_FULL,
+    ERR_QUEUE_FULL=1,
     ERR_QUEUE_EMPTY,
 } QUEUE_ERROR_CODE_E; /* End of tagQUEUE_ERROR_CODE_E */
 
-extern void *QueueCreate(int v_size);
-extern int QueuePush(void *v_pQ, void *v_pMemb);
-extern int QueuePop(void *v_pQ, void **v_ppMemb);
-extern int QueuePopPush(void *v_pQ, void *v_pMembPush, void **v_ppMembPop);
-extern int QueueGetSize(void *v_pQ);
-extern int QueueDestroy(void *v_pQ);
+
+typedef struct tagQUEUE_S
+{
+    void **memb;
+    int head;
+    int tail;
+    int size;
+} QUEUE_S; /* End of QUEUE_S */
+
+static inline QUEUE_S *QueueCreate(int size)
+{
+    QUEUE_S *q = NULL;
+
+    q = (QUEUE_S *)malloc(sizeof(QUEUE_S));
+    if (NULL == q)
+    {
+        return NULL;
+    }
+
+    q->memb = (void **)malloc(sizeof(void*) * size);
+    if (NULL == q->memb)
+    {
+        free(q);
+        return NULL;
+    }
+
+    q->head = 0;
+    q->tail = 0;
+    q->size = size;
+
+    return q;
+}
+
+static inline int QueuePush(QUEUE_S *q, void *memb)
+{
+    ASSERT(q);
+
+    if (((q->tail + 1) % q->size) == q->head)
+    {
+        return -ERR_QUEUE_FULL;
+    }
+
+    q->memb[q->tail++] = memb;
+    q->tail %= q->size;
+
+    return 0;
+}
+
+static inline int QueuePop(QUEUE_S *q, void **memb)
+{
+    ASSERT(q);
+
+    if (q->head == q->tail)
+    {
+        return -ERR_QUEUE_EMPTY;
+    }
+
+    *memb = q->memb[q->head++];
+    q->head %= q->size;
+
+    return 0;
+}
+
+static inline int QueueGetSize(QUEUE_S *q)
+{
+    ASSERT(q);
+
+    return (q->tail - q->head + q->size) % q->size;
+}
+
+static inline void QueueDestroy(QUEUE_S *q)
+{
+    ASSERT(q);
+
+    free(q->memb);
+    free(q);
+}
 
 #ifdef __cplusplus
 }
