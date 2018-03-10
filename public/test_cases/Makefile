@@ -17,7 +17,7 @@ TEST_ASYNC_WORK_QUEUE = test_async_work_queue
 #TARGET_ALL = $(TEST_INI) $(TEST_LOG) $(TEST_CMM) $(TEST_QUEUE)\
  #    $(TEST_STACK) $(TEST_ASYNC_WORK_QUEUE) 
  
-TARGET_ALL = $(TEST_INI) $(TEST_CMM)  $(TEST_QUEUE)\
+TARGET_ALL = $(TEST_INI) $(TEST_LOG) $(TEST_CMM)  $(TEST_QUEUE)\
      $(TEST_STACK)  
 
 all: $(TARGET_ALL)
@@ -26,7 +26,7 @@ $(TEST_INI):
 	gcc -o $@ test_ini.c ../ini.c $(CFLAGS)
 	
 $(TEST_LOG):
-	gcc -o $@ test_log.c ../log.c $(CFLAGS) -lpthread
+	gcc -o $@ test_log.c ../log.c ../file_if.c ../utils.c $(CFLAGS) -lpthread
 	
 $(TEST_CMM):
 	gcc -o $@ test_cmm.c ../cmm/cmm.c $(CFLAGS) -lpthread
