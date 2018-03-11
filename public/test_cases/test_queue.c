@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     long msg = 0;
     void *pMsg = NULL;
 
-    p = QueueCreate(10);
+    p = queue_create(10);
     if (NULL == p)
     {
         printf("Create queue failed.\n");
@@ -20,28 +20,28 @@ int main(int argc, char *argv[])
     msg = 90;
     while (msg--)
     {
-        if (QueuePush(p, (void *)msg) < 0)
+        if (queue_push(p, (void *)msg) < 0)
         {
             printf("----------Queue is full now-----------\n");
             break;
         }
 
-        printf("Push ok. [msg: %ld, size: %d]\n", msg, QueueGetSize(p));
+        printf("Push ok. [msg: %ld, size: %d]\n", msg, queue_get_size(p));
     }
     
     msg = 60;
     while (msg--)
     {
-        if (QueuePop(p, &pMsg) < 0)
+        if (queue_pop(p, &pMsg) < 0)
         {
             printf("----------Queue is empty now-----------\n");
             break;
         }
 
-        printf("Pop ok. [msg: %ld, size: %d]\n", (long)pMsg, QueueGetSize(p));
+        printf("Pop ok. [msg: %ld, size: %d]\n", (long)pMsg, queue_get_size(p));
     }
 
-    QueueDestroy(p);
+    queue_destroy(p);
     system("pause");
 
     return 0;

@@ -21,7 +21,7 @@ typedef struct tagQUEUE_S
     int size;
 } QUEUE_S; /* End of QUEUE_S */
 
-static inline QUEUE_S *QueueCreate(int size)
+static inline QUEUE_S *queue_create(int size)
 {
     QUEUE_S *q = NULL;
 
@@ -45,7 +45,7 @@ static inline QUEUE_S *QueueCreate(int size)
     return q;
 }
 
-static inline int QueuePush(QUEUE_S *q, void *memb)
+static inline int queue_push(QUEUE_S *q, void *memb)
 {
     ASSERT(q);
 
@@ -60,7 +60,7 @@ static inline int QueuePush(QUEUE_S *q, void *memb)
     return 0;
 }
 
-static inline int QueuePop(QUEUE_S *q, void **memb)
+static inline int queue_pop(QUEUE_S *q, void **memb)
 {
     ASSERT(q);
 
@@ -75,14 +75,14 @@ static inline int QueuePop(QUEUE_S *q, void **memb)
     return 0;
 }
 
-static inline int QueueGetSize(QUEUE_S *q)
+static inline int queue_get_size(QUEUE_S *q)
 {
     ASSERT(q);
 
     return (q->tail - q->head + q->size) % q->size;
 }
 
-static inline void QueueDestroy(QUEUE_S *q)
+static inline void queue_destroy(QUEUE_S *q)
 {
     ASSERT(q);
 
