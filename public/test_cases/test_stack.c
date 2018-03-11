@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     long msg = 0;
     void *pMsg = NULL;
 
-    p = StackCreate(10);
+    p = stack_create(10);
     if (NULL == p)
     {
         printf("Create queue failed.\n");
@@ -20,28 +20,28 @@ int main(int argc, char *argv[])
     msg = 90;
     while (msg--)
     {
-        if (StackPush(p, (void *)msg) < 0)
+        if (stack_push(p, (void *)msg) < 0)
         {
             printf("----------Stack is full now-----------\n");
             break;
         }
 
-        printf("Push ok. [msg: %ld, size: %d]\n", msg, StackGetSize(p));
+        printf("Push ok. [msg: %ld, size: %d]\n", msg, stack_get_size(p));
     }
     
     msg = 60;
     while (msg--)
     {
-        if (StackPop(p, &pMsg) < 0)
+        if (stack_pop(p, &pMsg) < 0)
         {
             printf("----------Stack is empty now-----------\n");
             break;
         }
 
-        printf("Pop ok. [msg: %ld, size: %d]\n", (long)pMsg, StackGetSize(p));
+        printf("Pop ok. [msg: %ld, size: %d]\n", (long)pMsg, stack_get_size(p));
     }
 
-    StackDestroy(p);
+    stack_destroy(p);
     system("pause");
 
     return 0;

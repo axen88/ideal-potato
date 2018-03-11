@@ -11,18 +11,18 @@ typedef enum tagSTACK_ERROR_CODE_E
     ERR_STACK_EMPTY,
 } STACK_ERROR_CODE_E; /* End of tagSTACK_ERROR_CODE_E */
 
-typedef struct tagSTACK_S
+typedef struct
 {
     void **memb;
     int num;
     int max;
-} STACK_S; /* End of STACK_S */
+} stack_t; /* End of stack_t */
 
-static inline STACK_S *StackCreate(int size)
+static inline stack_t *stack_create(int size)
 {
-    STACK_S *s = NULL;
+    stack_t *s = NULL;
 
-    s = malloc(sizeof(STACK_S));
+    s = malloc(sizeof(stack_t));
     if (NULL == s)
     {
         return NULL;
@@ -41,7 +41,7 @@ static inline STACK_S *StackCreate(int size)
     return s;
 }
 
-static inline int StackPush(STACK_S *s, void *memb)
+static inline int stack_push(stack_t *s, void *memb)
 {
     ASSERT(s);
     ASSERT(memb);
@@ -56,7 +56,7 @@ static inline int StackPush(STACK_S *s, void *memb)
     return 0;
 }
 
-static inline int StackPop(STACK_S *s, void **memb)
+static inline int stack_pop(stack_t *s, void **memb)
 {
     ASSERT(s);
     ASSERT(memb);
@@ -71,14 +71,14 @@ static inline int StackPop(STACK_S *s, void **memb)
     return 0;
 }
 
-static inline int StackGetSize(STACK_S *s)
+static inline int stack_get_size(stack_t *s)
 {
     ASSERT(s);
 
     return s->num;
 }
 
-static inline void StackDestroy(STACK_S *s)
+static inline void stack_destroy(stack_t *s)
 {
     ASSERT(s);
 
@@ -92,3 +92,5 @@ static inline void StackDestroy(STACK_S *s)
 
 
 #endif /* End of __STACK_H__ */
+
+

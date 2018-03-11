@@ -1,5 +1,5 @@
-#ifndef __OSP_QUEUE_H__
-#define __OSP_QUEUE_H__
+#ifndef __QUEUE_H__
+#define __QUEUE_H__
 
 
 #ifdef __cplusplus
@@ -13,19 +13,19 @@ typedef enum tagQUEUE_ERROR_CODE_E
 } QUEUE_ERROR_CODE_E; /* End of tagQUEUE_ERROR_CODE_E */
 
 
-typedef struct tagQUEUE_S
+typedef struct
 {
     void **memb;
     int head;
     int tail;
     int size;
-} QUEUE_S; /* End of QUEUE_S */
+} queue_t; /* End of queue_t */
 
-static inline QUEUE_S *queue_create(int size)
+static inline queue_t *queue_create(int size)
 {
-    QUEUE_S *q = NULL;
+    queue_t *q = NULL;
 
-    q = (QUEUE_S *)malloc(sizeof(QUEUE_S));
+    q = (queue_t *)malloc(sizeof(queue_t));
     if (NULL == q)
     {
         return NULL;
@@ -45,7 +45,7 @@ static inline QUEUE_S *queue_create(int size)
     return q;
 }
 
-static inline int queue_push(QUEUE_S *q, void *memb)
+static inline int queue_push(queue_t *q, void *memb)
 {
     ASSERT(q);
 
@@ -60,7 +60,7 @@ static inline int queue_push(QUEUE_S *q, void *memb)
     return 0;
 }
 
-static inline int queue_pop(QUEUE_S *q, void **memb)
+static inline int queue_pop(queue_t *q, void **memb)
 {
     ASSERT(q);
 
@@ -75,14 +75,14 @@ static inline int queue_pop(QUEUE_S *q, void **memb)
     return 0;
 }
 
-static inline int queue_get_size(QUEUE_S *q)
+static inline int queue_get_size(queue_t *q)
 {
     ASSERT(q);
 
     return (q->tail - q->head + q->size) % q->size;
 }
 
-static inline void queue_destroy(QUEUE_S *q)
+static inline void queue_destroy(queue_t *q)
 {
     ASSERT(q);
 
@@ -94,4 +94,6 @@ static inline void queue_destroy(QUEUE_S *q)
 }
 #endif /* End of __cplusplus */
 
-#endif /* End of __OSP_QUEUE_H__ */
+#endif /* End of __QUEUE_H__ */
+
+
