@@ -1,109 +1,38 @@
 
-
 #include <stdio.h>
 
+#include "../os_adapter.h"
 #include "../ini.h"
 
+void test_case0(void)
+{
 #define TEST_BUF_SIZE 256
-#define TEST_INI_FILE argv[1]
+#define TEST_INI_FILE "test_ini.ini"
+    
+    char value[TEST_BUF_SIZE]={0};
+
+    // section student
+    ASSERT(IniWriteString(TEST_INI_FILE, "student", "name", "Tony") == 0);
+    ASSERT(IniWriteString(TEST_INI_FILE, "student", "age", "20") == 0);
+
+    ASSERT(IniReadString(TEST_INI_FILE, "student", "name", value, TEST_BUF_SIZE, NULL) == 0);
+    ASSERT(strcmp(value, "Tony") == 0);
+
+    ASSERT(IniReadInt(TEST_INI_FILE, "student", "age", 0) == 20);
+
+    // section sucess inc
+    ASSERT(IniWriteString(TEST_INI_FILE, "success inc", "test name", "what's your name") == 0);
+    ASSERT(IniWriteString(TEST_INI_FILE, "success inc", "test num", "123456") == 0);
+
+    ASSERT(IniReadString(TEST_INI_FILE, "success inc", "test name", value, TEST_BUF_SIZE, NULL) == 0);
+    ASSERT(strcmp(value, "what's your name") == 0);
+
+    ASSERT(IniReadInt(TEST_INI_FILE, "success inc", "test num", 0) == 123456);
+}
 
 int main(int argc, char *argv[])
 {
-    const char szSection[] = "student";
-    const char szKeyName[] = "name";
-    const char szKeyAge[] = "age";
-    char szValue[TEST_BUF_SIZE]={0};
-    int age;
-
-    if (0 != IniWriteString(TEST_INI_FILE, szSection, szKeyName, "Tony"))
-    {
-        printf("IniWriteString failed. [%s, %s, %s]\n",
-            szSection, szKeyName, "Tony");
-    }
-    else
-    {
-        printf("IniWriteString success. [%s, %s, %s]\n",
-            szSection, szKeyName, "Tony");
-    }
-
-    if (0 != IniWriteString(TEST_INI_FILE, szSection, szKeyAge, "20"))
-    {
-        printf("IniWriteString failed. [%s, %s, %s]\n",
-            szSection, szKeyAge, "20");
-    }
-    else
-    {
-        printf("IniWriteString Success. [%s, %s, %s]\n",
-            szSection, szKeyAge, "20");
-    }
-
-    if (0 != IniReadString(TEST_INI_FILE, szSection, szKeyName,
-        szValue, TEST_BUF_SIZE, ""))
-    {
-        printf("IniReadString failed. [%s, %s]\n",
-            szSection, szKeyName);
-    }
-    else
-    {
-        printf("IniReadString success. [%s, %s, %s]\n",
-            szSection, szKeyName, szValue);
-    }
-
-    age = IniReadInt(TEST_INI_FILE, szSection, szKeyAge, 0);
-    printf("IniReadInt here. [%s, %s, %d]\n",
-    szSection, szKeyAge, age);
-
-    /* 用例 */
-    if (0 != IniReadString(TEST_INI_FILE, "Main", "test case",
-        szValue, TEST_BUF_SIZE, NULL))
-    {
-        printf("IniReadString failed. [%s, %s]\n",
-            "Main", "test case");
-    }
-    else
-    {
-        printf("IniReadString success. [%s, %s, %s]\n",
-            "Main", "test case", szValue);
-    }
-
-    /* 用例 */
-    if (0 != IniReadString(TEST_INI_FILE, "Main", "test case1",
-        szValue, TEST_BUF_SIZE, NULL))
-    {
-        printf("IniReadString failed. [%s, %s]\n",
-            "Main", "test case1");
-    }
-    else
-    {
-        printf("IniReadString success. [%s, %s, %s]\n",
-            "Main", "test case1", szValue);
-    }
-
-    /* 用例 */
-    if (0 != IniWriteString(TEST_INI_FILE, "Main", "test case1",
-        "TEST CASE1"))
-    {
-        printf("IniWriteString failed. [%s, %s]\n",
-            "Main", "test case1");
-    }
-    else
-    {
-        printf("IniWriteString success. [%s, %s]\n",
-            "Main", "test case1");
-    }
-
-    if (0 != IniReadString(TEST_INI_FILE, "Main", "test case1",
-        szValue, TEST_BUF_SIZE, NULL))
-    {
-        printf("IniReadString failed. [%s, %s]\n",
-            "Main", "test case1");
-    }
-    else
-    {
-        printf("IniReadString success. [%s, %s, %s]\n",
-            "Main", "test case1", szValue);
-    }
-
+    test_case0();
 
     return 0;
 }

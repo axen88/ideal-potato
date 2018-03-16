@@ -4,31 +4,37 @@
 #include "../os_adapter.h"
 #include "../cmm/cmm.h"
 
-int main(int argc, char *argv[])
+void test_case0(void)
 {
     void *pMem1 = NULL;
     void *pMem2 = NULL;
 
     MemInit();
-    printf("total: %lld, max: %lld\n", MemGetTotal(), MemGetMax());
+    ASSERT(MemGetTotal() == 0);
+    ASSERT(MemGetMax() == 0);
 
     pMem1 = MemAlloc(1024);
-    printf("total: %lld, max: %lld\n", MemGetTotal(), MemGetMax());
+    ASSERT(MemGetTotal() == 1024);
+    ASSERT(MemGetMax() == 1024);
     
     pMem2 = MemAlignedAlloc(2048, 4096);
-    printf("total: %lld, max: %lld\n", MemGetTotal(), MemGetMax());
-
-    printf("pMem1: %p, pMem2: %p\n", pMem1, pMem2);
+    ASSERT(MemGetTotal() == 1024+2048);
+    ASSERT(MemGetMax() == 1024+2048);
 
     MemFree(pMem1, 1024);
-    printf("total: %lld, max: %lld\n", MemGetTotal(), MemGetMax());
+    ASSERT(MemGetTotal() == 2048);
+    ASSERT(MemGetMax() == 1024+2048);
 
     MemAlignedFree(pMem2, 2048);
-    printf("total: %lld, max: %lld\n", MemGetTotal(), MemGetMax());
+    ASSERT(MemGetTotal() == 0);
+    ASSERT(MemGetMax() == 1024+2048);
 
-    printf("remain: %lld\n", MemExit());
+    ASSERT(MemExit() == 0);
 
-    system("pause");
+}
+
+int main(int argc, char *argv[])
+{
 
     return 0;
 }

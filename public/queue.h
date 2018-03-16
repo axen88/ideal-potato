@@ -18,6 +18,7 @@ typedef struct
     void **memb;
     int head;
     int tail;
+    int cnt;
     int size;
 } queue_t; /* End of queue_t */
 
@@ -31,7 +32,7 @@ static inline queue_t *queue_create(int size)
         return NULL;
     }
 
-    q->memb = (void **)malloc(sizeof(void*) * size);
+    q->memb = (void **)malloc(sizeof(void *) * size);
     if (NULL == q->memb)
     {
         free(q);
@@ -40,6 +41,7 @@ static inline queue_t *queue_create(int size)
 
     q->head = 0;
     q->tail = 0;
+    q->cnt = 0;
     q->size = size;
 
     return q;
@@ -49,13 +51,14 @@ static inline int queue_push(queue_t *q, void *memb)
 {
     ASSERT(q);
 
-    if (((q->tail + 1) % q->size) == q->head)
+    if (q->cnt == q->size)
     {
         return -ERR_QUEUE_FULL;
     }
 
     q->memb[q->tail++] = memb;
     q->tail %= q->size;
+    q->cnt++;
 
     return 0;
 }
@@ -64,13 +67,14 @@ static inline int queue_pop(queue_t *q, void **memb)
 {
     ASSERT(q);
 
-    if (q->head == q->tail)
+    if (q->cnt == 0)
     {
         return -ERR_QUEUE_EMPTY;
     }
 
     *memb = q->memb[q->head++];
     q->head %= q->size;
+    q->cnt--;
 
     return 0;
 }
@@ -79,7 +83,7 @@ static inline int queue_get_size(queue_t *q)
 {
     ASSERT(q);
 
-    return (q->tail - q->head + q->size) % q->size;
+    return q->cnt;
 }
 
 static inline void queue_destroy(queue_t *q)

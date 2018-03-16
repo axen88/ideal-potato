@@ -4,46 +4,56 @@
 #include "../os_adapter.h"
 #include "../stack.h"
 
+void test_case0(void)
+{
+#define S_SIZE 7
+#define MEMB   90
+        
+    void *q = NULL;
+    long push_msg = 0;
+    void *pop_msg = NULL;
+
+    ASSERT(q = stack_create(S_SIZE));
+
+    push_msg = MEMB;
+    ASSERT(stack_push(q, (void *)push_msg) == 0); push_msg++;
+    ASSERT(stack_push(q, (void *)push_msg) == 0); push_msg++;
+    ASSERT(stack_push(q, (void *)push_msg) == 0); push_msg++;
+    ASSERT(stack_push(q, (void *)push_msg) == 0); push_msg++;
+    ASSERT(stack_push(q, (void *)push_msg) == 0); push_msg++;
+    ASSERT(stack_push(q, (void *)push_msg) == 0); push_msg++;
+    ASSERT(stack_push(q, (void *)push_msg) == 0); push_msg++;
+    ASSERT(stack_push(q, (void *)push_msg) == -ERR_STACK_FULL);
+    ASSERT(stack_get_size(q) == S_SIZE);
+
+    ASSERT(stack_pop(q, &pop_msg) == 0); ASSERT((long)pop_msg == MEMB+6);
+    ASSERT(stack_pop(q, &pop_msg) == 0); ASSERT((long)pop_msg == MEMB+5);
+    ASSERT(stack_pop(q, &pop_msg) == 0); ASSERT((long)pop_msg == MEMB+4);
+    ASSERT(stack_pop(q, &pop_msg) == 0); ASSERT((long)pop_msg == MEMB+3);
+    ASSERT(stack_pop(q, &pop_msg) == 0); ASSERT((long)pop_msg == MEMB+2);
+    ASSERT(stack_pop(q, &pop_msg) == 0); ASSERT((long)pop_msg == MEMB+1);
+    ASSERT(stack_pop(q, &pop_msg) == 0); ASSERT((long)pop_msg == MEMB+0);
+    ASSERT(stack_pop(q, &pop_msg) == -ERR_STACK_EMPTY);
+    ASSERT(stack_get_size(q) == 0);
+    
+    ASSERT(stack_push(q, (void *)push_msg) == 0); push_msg++;
+    ASSERT(stack_push(q, (void *)push_msg) == 0); push_msg++;
+    ASSERT(stack_push(q, (void *)push_msg) == 0); push_msg++;
+    
+    ASSERT(stack_pop(q, &pop_msg) == 0); ASSERT((long)pop_msg == MEMB+9);
+    ASSERT(stack_pop(q, &pop_msg) == 0); ASSERT((long)pop_msg == MEMB+8);
+    ASSERT(stack_pop(q, &pop_msg) == 0); ASSERT((long)pop_msg == MEMB+7);
+    ASSERT(stack_pop(q, &pop_msg) == -ERR_STACK_EMPTY);
+    ASSERT(stack_get_size(q) == 0);
+
+    stack_destroy(q);
+
+}
+
 int main(int argc, char *argv[])
 {
-    void *p = NULL;
-    long msg = 0;
-    void *pMsg = NULL;
-
-    p = stack_create(10);
-    if (NULL == p)
-    {
-        printf("Create queue failed.\n");
-        return -1;
-    }
-
-    msg = 90;
-    while (msg--)
-    {
-        if (stack_push(p, (void *)msg) < 0)
-        {
-            printf("----------Stack is full now-----------\n");
-            break;
-        }
-
-        printf("Push ok. [msg: %ld, size: %d]\n", msg, stack_get_size(p));
-    }
+    test_case0();
     
-    msg = 60;
-    while (msg--)
-    {
-        if (stack_pop(p, &pMsg) < 0)
-        {
-            printf("----------Stack is empty now-----------\n");
-            break;
-        }
-
-        printf("Pop ok. [msg: %ld, size: %d]\n", (long)pMsg, stack_get_size(p));
-    }
-
-    stack_destroy(p);
-    system("pause");
-
     return 0;
 }
 

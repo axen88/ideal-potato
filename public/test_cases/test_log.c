@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
     LOG_EVENT("get log level %d\n", LOG_GET_LEVEL());
 
     LOG_SET_LEVEL(5);
+    ASSERT(LOG_GET_LEVEL() == 5);
     
     LOG_EVENT("set log level 5, real: %d\n", LOG_GET_LEVEL());
     
@@ -32,11 +33,12 @@ int main(int argc, char *argv[])
     LOG_EVENT("Test %d\n", i++);
     LOG_EMERG("Test %d\n", i++);
     
+    LOG_SET_LEVEL(3);
+    ASSERT(LOG_GET_LEVEL() == 3);
+
     LOG_SYSTEM_EXIT();
 
     sleep(1);
-    
-    system("pause");
 
     return 0;
 } /* End of DebugLog */
