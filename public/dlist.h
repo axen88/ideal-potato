@@ -43,103 +43,81 @@ extern "C"
 {
 #endif
 
-typedef struct dlist_entry
+typedef struct list_head
 {
-    struct dlist_entry *next;
-    struct dlist_entry *prev;
-} dlist_entry_t;
+    struct list_head *next;
+    struct list_head *prev;
+} list_head_t;
 
-typedef struct dlist_head
+#define list_entry(ptr, type, member) \
+    ((type *)((char *)(ptr)-(unsigned long)(&((type *)0)->member))) 
+
+static inline void list_init_head(list_head_t *node)
 {
-    dlist_entry_t head;
-    uint32_t num;
-} dlist_head_t;
+    ASSERT(node);
 
-
-static inline void dlist_init_entry(dlist_entry_t *entry)
-{
-    ASSERT(entry);
-
-    entry->next = entry;
-    entry->prev = entry;
+    node->next = node;
+    node->prev = node;
 }
 
-static inline void dlist_init_head(dlist_head_t *head)
+static void add_node(list_head_t *node, list_head_t *prev, list_head_t *next)
 {
-    ASSERT(head);
-
-    head->num = 0;
-    dlist_init_entry(&head->head);
-}
-
-static void add_entry(dlist_entry_t *entry, dlist_entry_t *prev, dlist_entry_t *next)
-{
-    ASSERT(entry);
+    ASSERT(node);
     ASSERT(prev);
     ASSERT(next);
 
-    next->prev = entry;
-    entry->next = next;
-    entry->prev = prev;
-    prev->next = entry;
+    next->prev = node;
+    node->next = next;
+    node->prev = prev;
+    prev->next = node;
 }
 
-static void remove_entry(dlist_entry_t *entry, dlist_entry_t *prev, dlist_entry_t *next)
+static void remove_node(list_head_t *node, list_head_t *prev, list_head_t *next)
 {
     ASSERT(prev);
     ASSERT(next);
 
     next->prev = prev;
     prev->next = next;
-    dlist_init_entry(entry);
+    list_init_head(node);
 }
 
-static inline void dlist_add_head(dlist_head_t *head, dlist_entry_t *entry)
+static inline void list_add_head(list_head_t *head, list_head_t *node)
 {
     ASSERT(head);
-    ASSERT(entry);
-    ASSERT(head->head.next);
+    ASSERT(node);
 
-    add_entry(entry, &head->head, head->head.next);
-    head->num++;
+    add_node(node, head, head->next);
 }
 
-static inline void dlist_add_tail(dlist_head_t *head, dlist_entry_t *entry)
+static inline void list_add_tail(list_head_t *head, list_head_t *node)
 {
     ASSERT(head);
-    ASSERT(entry);
-    ASSERT(head->head.prev);
+    ASSERT(node);
 
-	add_entry(entry, head->head.prev, &head->head);
-    head->num++;
+	add_node(node, head->prev, head);
 }
 
-static inline void dlist_remove_entry(dlist_head_t *head, dlist_entry_t *entry)
+static inline void list_remove_node(list_head_t *node)
 {
-    ASSERT(entry);
-    ASSERT(entry->prev);
-    ASSERT(entry->next);
+    ASSERT(node);
 
-    if (entry->prev != entry)
-    {
-        remove_entry(entry, entry->prev, entry->next);
-        head->num--;
-    }
+    remove_node(node, node->prev, node->next);
 }
 
-static inline dlist_entry_t *dlist_get_entry(dlist_head_t *head, uint32_t position)
+static inline list_head_t *list_get_node(list_head_t *head, uint32_t pos)
 {
     uint32_t cnt = 0;
-    dlist_entry_t *next = NULL;
+    list_head_t *next = NULL;
 
     ASSERT(head);
 
-    next = head->head.next;
+    next = head->next;
     ASSERT(next);
 
-    while (next != &head->head)
+    while (next != head)
     {
-        if (position == cnt)
+        if (pos == cnt)
         {
             return next;
         }
@@ -153,41 +131,41 @@ static inline dlist_entry_t *dlist_get_entry(dlist_head_t *head, uint32_t positi
     return NULL;
 }
 
-static inline int32_t dlist_remove_target_entry(dlist_head_t *head, uint32_t position)
+static inline int32_t list_remove_target_node(list_head_t *head, uint32_t position)
 {
-    dlist_entry_t *entry = NULL;
+    list_head_t *node = NULL;
 
     ASSERT(head);
 
-    entry = dlist_get_entry(head, position);
+    node = list_get_node(head, position);
 
-    if (entry)
+    if (node)
     {
-        dlist_remove_entry(head, entry);
+        list_remove_node(node);
         return 0;
     }
 
     return -1;
 }
 
-typedef int32_t (*dlist_cb)(void *, dlist_entry_t *);
+typedef int32_t (*list_cb)(void *, list_head_t *);
 
-static inline int32_t dlist_walk_all(dlist_head_t *head, dlist_cb cb, void *para)
+static inline int32_t list_walk_all(list_head_t *head, list_cb cb, void *para)
 {
     int32_t ret = 0;
-    dlist_entry_t *next = NULL;
-    dlist_entry_t *next_next = NULL;
+    list_head_t *next = NULL;
+    list_head_t *next_next = NULL;
 
     ASSERT(cb);
     ASSERT(head);
 
-    next = head->head.next;
+    next = head->next;
     ASSERT(next);
 
     next_next = next->next;
     ASSERT(next_next);
 
-    while (next != &head->head)
+    while (next != head)
     {
         ret = cb(para, next);
         if (ret != 0)
@@ -204,19 +182,11 @@ static inline int32_t dlist_walk_all(dlist_head_t *head, dlist_cb cb, void *para
     return 0;
 }
 
-static inline int32_t dlist_count(dlist_head_t *head)
+static inline bool_t list_is_empty(list_head_t *head)
 {
     ASSERT(head);
 
-    return (int32_t)head->num;
-}
-
-static inline bool_t dlist_is_empty(dlist_head_t *head)
-{
-    ASSERT(head);
-    ASSERT(head->head.next);
-
-    return (head->head.next == &head->head) ? TRUE : FALSE;
+    return (head->next == head) ? TRUE : FALSE;
 }
 
 
