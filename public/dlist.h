@@ -43,66 +43,82 @@ extern "C"
 {
 #endif
 
+#define LIST_POISON1 ((void *) 0x00100100)
+#define LIST_POISON2 ((void *) 0x00200200)
+
 typedef struct list_head
 {
     struct list_head *next;
     struct list_head *prev;
 } list_head_t;
 
+#define list_for_each(pos, head) \
+    for (pos = (head)->next; pos != (head); pos = pos->next)
+
 #define list_entry(ptr, type, member) \
     ((type *)((char *)(ptr)-(unsigned long)(&((type *)0)->member))) 
 
-static inline void list_init_head(list_head_t *node)
-{
-    ASSERT(node);
+#define list_for_each_safe(pos, n, head) \
+    for (pos = (head)->next, n = pos->next; pos != (head); \
+        pos = n, n = pos->next)
 
-    node->next = node;
-    node->prev = node;
+static inline void list_init_head(list_head_t *entry)
+{
+    ASSERT(entry);
+
+    entry->next = entry;
+    entry->prev = entry;
 }
 
-static void add_node(list_head_t *node, list_head_t *prev, list_head_t *next)
+#define INIT_LIST_HEAD(head) list_init_head(head)
+
+static void __list_add(list_head_t *new, list_head_t *prev, list_head_t *next)
 {
-    ASSERT(node);
+    ASSERT(new);
     ASSERT(prev);
     ASSERT(next);
 
-    next->prev = node;
-    node->next = next;
-    node->prev = prev;
-    prev->next = node;
+    next->prev = new;
+    new->next = next;
+    new->prev = prev;
+    prev->next = new;
 }
 
-static void remove_node(list_head_t *node, list_head_t *prev, list_head_t *next)
+static inline void list_add_head(list_head_t *head, list_head_t *new)
+{
+    ASSERT(head);
+    ASSERT(new);
+
+    __list_add(new, head, head->next);
+}
+
+#define list_add(head, new) list_add_head(head, new)
+
+static inline void list_add_tail(list_head_t *head, list_head_t *new)
+{
+    ASSERT(head);
+    ASSERT(new);
+
+	__list_add(new, head->prev, head);
+}
+
+static void __list_del(list_head_t *entry, list_head_t *prev, list_head_t *next)
 {
     ASSERT(prev);
     ASSERT(next);
 
     next->prev = prev;
     prev->next = next;
-    list_init_head(node);
+    
+    entry->next = LIST_POISON1;
+    entry->prev = LIST_POISON2;
 }
 
-static inline void list_add_head(list_head_t *head, list_head_t *node)
+static inline void list_del(list_head_t *entry)
 {
-    ASSERT(head);
-    ASSERT(node);
+    ASSERT(entry);
 
-    add_node(node, head, head->next);
-}
-
-static inline void list_add_tail(list_head_t *head, list_head_t *node)
-{
-    ASSERT(head);
-    ASSERT(node);
-
-	add_node(node, head->prev, head);
-}
-
-static inline void list_remove_node(list_head_t *node)
-{
-    ASSERT(node);
-
-    remove_node(node, node->prev, node->next);
+    __list_del(entry, entry->prev, entry->next);
 }
 
 static inline list_head_t *list_get_node(list_head_t *head, uint32_t pos)
@@ -133,15 +149,15 @@ static inline list_head_t *list_get_node(list_head_t *head, uint32_t pos)
 
 static inline int32_t list_remove_target_node(list_head_t *head, uint32_t position)
 {
-    list_head_t *node = NULL;
+    list_head_t *entry = NULL;
 
     ASSERT(head);
 
-    node = list_get_node(head, position);
+    entry = list_get_node(head, position);
 
-    if (node)
+    if (entry)
     {
-        list_remove_node(node);
+        list_del(entry);
         return 0;
     }
 
