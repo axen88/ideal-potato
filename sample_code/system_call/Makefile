@@ -19,6 +19,7 @@ SERVICE_DAEMON_OBJS = service_daemon.o
 AIO_RW_OBJS = aio_rw.o
 AIO_CALLBACK_OBJS = aio_callback.o
 FLOCK_OBJS = flock.o
+TEST_SEM_OBJS = test_sem.o
 
 STRTOL = strtol
 SHMMUTEX = shmmutex
@@ -32,11 +33,12 @@ SERVICE_DAEMON = service_daemon
 AIO_RW = aio_rw
 AIO_CALLBACK = aio_callback
 FLOCK = flock
+TEST_SEM = test_sem
 
 
 TARGET_ALL = $(STRTOL) $(SHMMUTEX) $(FORK) $(PTHREAD_SIGNAL) \
     $(POPEN_READ) $(POPEN_WRITE) $(GET_PROCESS_ID) $(DIR_SCAN) $(SERVICE_DAEMON) \
-    $(AIO_RW) $(AIO_CALLBACK) $(FLOCK)
+    $(AIO_RW) $(AIO_CALLBACK) $(FLOCK) $(TEST_SEM)
 
 all: $(TARGET_ALL)
 
@@ -78,6 +80,9 @@ $(AIO_CALLBACK): $(POBJS) $(AIO_CALLBACK_OBJS)
 
 $(FLOCK): $(POBJS) $(FLOCK_OBJS)
 	$(CXX) -o $@ $^ 
+	
+$(TEST_SEM): $(POBJS) $(TEST_SEM_OBJS)
+	$(CXX) -o $@ $^ -lpthread
 
 clean:
 	rm -f *.o $(TARGET_ALL)
