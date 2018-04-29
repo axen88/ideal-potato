@@ -7,31 +7,22 @@ CFLAGS = -g -Wall -I./
 
 POBJS = 
 
-TEST_INI = test_ini
-TEST_LOG = test_log
-TEST_CMM = test_cmm
-TEST_QUEUE = test_queue
-TEST_STACK = test_stack
+TEST_SUITE_MAIN = test_suite_main
 
-TARGET_ALL = $(TEST_INI) $(TEST_LOG) $(TEST_CMM)  $(TEST_QUEUE)\
-     $(TEST_STACK) 
+INI_SRC = test_ini.c ../ini.c
+QUEUE_SRC = test_queue.c
+STACK_SRC = test_stack.c
+CMM_SRC = test_cmm.c ../cmm/cmm.c 
+LOG_SRC = test_log.c ../log.c ../file_if.c ../utils.c
+RADIX_SRC = test_radix_tree.c ../radix_tree.c 
+
+TARGET_ALL = $(TEST_SUITE_MAIN)
 
 all: $(TARGET_ALL)
 
-$(TEST_INI):
-	gcc -o $@ test_ini.c ../ini.c $(CFLAGS)
+$(TEST_SUITE_MAIN):
+	gcc -o $@ $(INI_SRC) $(QUEUE_SRC) $(STACK_SRC) $(CMM_SRC) $(LOG_SRC) $(RADIX_SRC) test_suite_main.c $(CFLAGS) -lpthread -lcunit -static
 	
-$(TEST_LOG):
-	gcc -o $@ test_log.c ../log.c ../file_if.c ../utils.c $(CFLAGS) -lpthread
-	
-$(TEST_CMM):
-	gcc -o $@ test_cmm.c ../cmm/cmm.c $(CFLAGS) -lpthread
-	
-$(TEST_QUEUE):
-	gcc -o $@ test_queue.c $(CFLAGS) -lpthread
-	
-$(TEST_STACK):
-	gcc -o $@ test_stack.c $(CFLAGS) -lpthread
 	
 clean:
-	rm -f *.o $(TARGET_ALL)
+	rm -f *.o ../*.o $(TARGET_ALL)
