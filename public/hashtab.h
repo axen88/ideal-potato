@@ -26,7 +26,8 @@ History:
 
 typedef struct hashtab_node hashtab_node_t;
 
-struct hashtab_node {
+struct hashtab_node
+{
     void *key;
     void *dat;
     hashtab_node_t *next;
@@ -34,15 +35,43 @@ struct hashtab_node {
 
 typedef struct hashtab hashtab_t;
 
-struct hashtab {
+struct hashtab
+{
     hashtab_node_t **htable;                               /* hash table */
-    uint32_t bucket_size;                                         /* number of slots in hash table */
+    uint32_t slot_num;                                         /* number of slots in hash table */
     uint32_t num;                                         /* number of elements in hash table */
     uint32_t max_num;
     uint32_t (*hash_value)(hashtab_t *h, void *key);            /* hash function */
     int (*keycmp)(hashtab_t *h, void *key1, void *key2);   /* key comparison function */
 };
 
+
+hashtab_t *hashtab_create(uint32_t (*hash_value)(hashtab_t *h, void *key),
+                               int (*keycmp)(hashtab_t *h, void *key1, void *key2),
+                               uint32_t slot_num, uint32_t max_num);
+
+int hashtab_insert(hashtab_t *h, void *key, void *dat);
+
+void *hashtab_delete(hashtab_t *h, void *key);  
+
+void *hashtab_search(hashtab_t *h, void *key);
+
+void hashtab_destroy(hashtab_t *h);
+
+struct hashtab_info {  
+  unsigned long slots_used;  
+  unsigned long max_chain_len;  
+};  
+
+typedef struct hashtab_info hashtab_info_t;
+
+int hashtab_map(struct hashtab *h,  
+                int (*apply)(void *k, void *d, void *args),  
+                void *args);  
+
+void hashtab_stat(struct hashtab *h, struct hashtab_info *info);  
+
+void hashtab_print(struct hashtab *h, void (*print)(void *key, void *data));  
 
 #endif
 

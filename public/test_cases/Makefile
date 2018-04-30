@@ -15,13 +15,14 @@ STACK_SRC = test_stack.c
 CMM_SRC = test_cmm.c ../cmm/cmm.c 
 LOG_SRC = test_log.c ../log.c ../file_if.c ../utils.c
 RADIX_SRC = test_radix_tree.c ../radix_tree.c 
+HASHTAB_SRC = test_hashtab.c ../hashtab.c 
 
 TARGET_ALL = $(TEST_SUITE_MAIN)
 
 all: $(TARGET_ALL)
 
 $(TEST_SUITE_MAIN):
-	gcc -o $@ $(INI_SRC) $(QUEUE_SRC) $(STACK_SRC) $(CMM_SRC) $(LOG_SRC) $(RADIX_SRC) test_suite_main.c $(CFLAGS) -lpthread -lcunit -static
+	gcc -o $@ $(INI_SRC) $(QUEUE_SRC) $(STACK_SRC) $(CMM_SRC) $(LOG_SRC) $(RADIX_SRC) $(HASHTAB_SRC) test_suite_main.c $(CFLAGS) -lpthread -lcunit -static
 	
 	
 clean:
