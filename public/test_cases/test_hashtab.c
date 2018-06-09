@@ -6,34 +6,49 @@
 #include "../os_adapter.h"
 #include "../hashtab.h"
 
-uint32_t hash_cache_value(hashtab_t *h, void *key)
+typedef struct test_hashtab_node
+{
+    u64_t key;       // 
+    
+    u64_t value;       // 
+    
+    hashtab_node_t hnode; // ÔÚhashtabÖÐµÇ¼Ç
+    
+} test_hashtab_node_t;
+
+
+uint32_t test_hash_func(hashtab_t *h, void *key)
 {
     u64_t id = (u64_t)key;
 
-    return id % h->slot_num;
+    return id % h->slots_num;
 }
 
-int hash_compare_key(hashtab_t *h, void *key1, void *key2)
+int hash_compare_key(hashtab_t *h, void *key1, void *value)
 {
     u64_t id1 = (u64_t)key1;
-    u64_t id2 = (u64_t)key2;
+    test_hashtab_node_t *v = (test_hashtab_node_t *)value;
 
-    if (id1 > id2)
+    if (id1 > v->key)
         return 1;
-    else if (id1 == id2)
+    else if (id1 == v->key)
         return 0;
     else 
         return -1;
 }
 
-void hash_print(void *key, void *dat)
+void hash_print(void *value)
 {
-    printf("(%llu,%llu)", (u64_t)key, (u64_t)dat);
+    test_hashtab_node_t *v = (test_hashtab_node_t *)value;
+    
+    printf("(%llu,%llu)", v->key, v->value);
 }
 
-int hash_print2(void *key, void *dat, void *arg)
+int hash_print2(void *value, void *arg)
 {
-    printf("(%llu,%llu)", (u64_t)key, (u64_t)dat);
+    test_hashtab_node_t *v = (test_hashtab_node_t *)value;
+
+    printf("(%llu,%llu)", v->key, v->value);
 
     return 0;
 }
@@ -41,24 +56,41 @@ int hash_print2(void *key, void *dat, void *arg)
 void test_hashtab_case0(void)
 {
     hashtab_t *h;
-    #define VALUE(key)  (key+12)
     hashtab_info_t stat;
+    test_hashtab_node_t node[100];
+    test_hashtab_node_t *hnode;
 
-    h = hashtab_create(hash_cache_value, hash_compare_key, 4, 100);
+    h = hashtab_create(test_hash_func, hash_compare_key, 4, offsetof(test_hashtab_node_t, hnode));
     CU_ASSERT(h != NULL);
 
-    hashtab_insert(h, (void *)0, (void *)VALUE(0));
-    hashtab_insert(h, (void *)10, (void *)VALUE(10));
-    hashtab_insert(h, (void *)12, (void *)VALUE(12));
-    hashtab_insert(h, (void *)20, (void *)VALUE(20));
-    hashtab_insert(h, (void *)13, (void *)VALUE(13));
+    hnode = node;
+    
+    hnode->key = 10; hnode->value = hnode->key+100;
+    hashtab_insert(h, (void *)hnode->key, hnode); hnode++;
+    hnode->key = 11; hnode->value = hnode->key+100;
+    hashtab_insert(h, (void *)hnode->key, hnode); hnode++;
+    hnode->key = 12; hnode->value = hnode->key+100;
+    hashtab_insert(h, (void *)hnode->key, hnode); hnode++;
+    hnode->key = 14; hnode->value = hnode->key+100;
+    hashtab_insert(h, (void *)hnode->key, hnode); hnode++;
+    hnode->key = 15; hnode->value = hnode->key+100;
+    hashtab_insert(h, (void *)hnode->key, hnode); hnode++;
+    hnode->key = 16; hnode->value = hnode->key+100;
+    hashtab_insert(h, (void *)hnode->key, hnode); hnode++;
+    hnode->key = 18; hnode->value = hnode->key+100;
+    hashtab_insert(h, (void *)hnode->key, hnode); hnode++;
 
-    CU_ASSERT(hashtab_search(h, (void *)0) == (void *)VALUE(0));
-    CU_ASSERT(hashtab_search(h, (void *)10) == (void *)VALUE(10));
-    CU_ASSERT(hashtab_search(h, (void *)12) == (void *)VALUE(12));
-    CU_ASSERT(hashtab_search(h, (void *)20) == (void *)VALUE(20));
-    CU_ASSERT(hashtab_search(h, (void *)13) == (void *)VALUE(13));
+
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_search(h, (void *)10))->value == 10 + 100);
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_search(h, (void *)11))->value == 11 + 100);
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_search(h, (void *)12))->value == 12 + 100);
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_search(h, (void *)14))->value == 14 + 100);
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_search(h, (void *)15))->value == 15 + 100);
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_search(h, (void *)16))->value == 16 + 100);
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_search(h, (void *)18))->value == 18 + 100);
     CU_ASSERT(hashtab_search(h, (void *)9) == NULL);
+    CU_ASSERT(hashtab_search(h, (void *)17) == NULL);
+    CU_ASSERT(hashtab_search(h, (void *)13) == NULL);
 
     hashtab_print(h, hash_print);
 
@@ -72,10 +104,12 @@ void test_hashtab_case0(void)
     CU_ASSERT(stat.slots_used == 3);
 
 
-    CU_ASSERT(hashtab_delete(h, (void *)13) == (void *)VALUE(13));
-    CU_ASSERT(hashtab_delete(h, (void *)20) == (void *)VALUE(20));
-    CU_ASSERT(hashtab_delete(h, (void *)20) == NULL);
-    CU_ASSERT(hashtab_delete(h, (void *)13) == NULL);
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_delete(h, (void *)11))->value == 11 + 100);
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_delete(h, (void *)15))->value == 15 + 100);
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_delete(h, (void *)10))->value == 10 + 100);
+    CU_ASSERT(hashtab_delete(h, (void *)11) == NULL);
+    CU_ASSERT(hashtab_delete(h, (void *)15) == NULL);
+    CU_ASSERT(hashtab_delete(h, (void *)10) == NULL);
 
     printf("\n");
     hashtab_map(h, hash_print2, NULL);
@@ -85,10 +119,15 @@ void test_hashtab_case0(void)
     CU_ASSERT(stat.max_chain_len == 2);
     CU_ASSERT(stat.slots_used == 2);
 
-    hashtab_insert(h, (void *)13, (void *)VALUE(13));
-    hashtab_insert(h, (void *)20, (void *)VALUE(20));
-    CU_ASSERT(hashtab_search(h, (void *)13) == (void *)VALUE(13));
-    CU_ASSERT(hashtab_search(h, (void *)20) == (void *)VALUE(20));
+    hnode->key = 10; hnode->value = hnode->key+100;
+    hashtab_insert(h, (void *)hnode->key, hnode); hnode++;
+    hnode->key = 11; hnode->value = hnode->key+100;
+    hashtab_insert(h, (void *)hnode->key, hnode); hnode++;
+    hnode->key = 15; hnode->value = hnode->key+100;
+    hashtab_insert(h, (void *)hnode->key, hnode); hnode++;
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_search(h, (void *)11))->value == 11 + 100);
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_search(h, (void *)15))->value == 15 + 100);
+    CU_ASSERT(((test_hashtab_node_t *)hashtab_search(h, (void *)10))->value == 10 + 100);
 
     printf("\n");
     hashtab_map(h, hash_print2, NULL);
@@ -99,7 +138,6 @@ void test_hashtab_case0(void)
     CU_ASSERT(stat.slots_used == 3);
 
     hashtab_destroy(h);
-
 }
 
 
