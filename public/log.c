@@ -86,7 +86,7 @@ typedef struct log
     char  version[LOG_VERSION_LEN];    
     int32_t total_lines;             
     uint32_t mode;                 
-    uint32_t levels[PIDS_NUM]; 
+    uint32_t levels[MAX_PIDS_NUM]; 
     
     char date_time[DATA_TIME_STR_LEN];
     char buf[BUF_LEN];
@@ -202,7 +202,7 @@ static int32_t backup_log(log_t *log)
 
 void log_set_level(void *log, uint32_t pid, uint32_t level)
 {
-    if ((!log) || (pid >= PIDS_NUM))
+    if ((!log) || (pid >= MAX_PIDS_NUM))
     {
         return;
     }
@@ -214,7 +214,7 @@ void log_set_level(void *log, uint32_t pid, uint32_t level)
 
 int32_t log_get_level(void *log, uint32_t pid)
 {
-    if ((!log) || (pid >= PIDS_NUM))
+    if ((!log) || (pid >= MAX_PIDS_NUM))
     {
         return -1;
     }
@@ -250,7 +250,7 @@ void *log_open(const char *file_name, const char *version, const char *dir, uint
     log->version[LOG_NAME_LEN - 1] = 0;
 
     log->mode = mode;
-    for (i = 0; i < PIDS_NUM; i++)
+    for (i = 0; i < MAX_PIDS_NUM; i++)
     {
         log->levels[i] = DEFAULT_LEVEL;
     }
@@ -292,7 +292,7 @@ void log_trace(void *log, uint32_t pid, uint32_t level, const char *format, ...)
     log_t *tmp_log = (log_t *)log;
     va_list ap;
 
-    if ((tmp_log == NULL) || (pid >= PIDS_NUM) || (level > tmp_log->levels[pid])
+    if ((tmp_log == NULL) || (pid >= MAX_PIDS_NUM) || (level > tmp_log->levels[pid])
         || ((tmp_log->mode & LOG_TO_SCNFILE) == 0)
         || (((tmp_log->mode & LOG_TO_SCREEN) == 0) && (tmp_log->disk_hnd == NULL)))
     {
@@ -327,6 +327,50 @@ void log_trace(void *log, uint32_t pid, uint32_t level, const char *format, ...)
     }
 }
 
+#if DESC("单实例模式")
+
 void *g_log_hnd = NULL;
 
+void log_init_single(char *log_dir, char *log_name)
+{
+    if (g_log_hnd)
+        return;
+    
+    g_log_hnd = log_open(log_name, "V100R001C01", log_dir, LOG_TO_FILE);
+}
+
+void log_exit_single(void)
+{
+    if (!g_log_hnd)
+        return;
+    
+    log_close(g_log_hnd);
+    g_log_hnd = NULL;
+}
+
+void log_set_level_single(uint32_t pid, uint32_t level)
+{
+    log_set_level(g_log_hnd, pid, level);
+}
+
+uint32_t log_get_level_single(uint32_t pid)
+{
+    return log_get_level(g_log_hnd, pid);
+}
+
+void *log_get_hnd(void)
+{
+    return g_log_hnd;
+}
+/*
+void log_trace_single(uint32_t pid, uint32_t level, const char *format, ...)
+{
+    va_list args;
+    
+    va_start (args, format);
+    log_trace(g_log_hnd, pid, level, format, args);
+    va_end (args);
+}*/
+
+#endif
 

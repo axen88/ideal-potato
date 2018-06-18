@@ -239,8 +239,7 @@ static inline void destroy_threads_group(threads_group_t *threads_group, bool_t 
 #define BITS_PER_BYTE (1 << BITS_PER_BYTE_SHIFT)
 #endif
 
-//static uint32_t g_pid = PID_INDEX;
-#define MODULE(pid)  static uint32_t g_pid = (pid)    
+#define MODULE_ID(pid)  static uint32_t MY_PID = (pid)    
 
 #ifdef	__cplusplus
 }

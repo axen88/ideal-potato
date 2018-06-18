@@ -5,7 +5,7 @@
 #include "../os_adapter.h"
 #include "../log.h"
 
-MODULE(10);
+MODULE_ID(10);
 
 
 void test_log_case0(void)
