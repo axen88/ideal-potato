@@ -96,7 +96,7 @@ void test_hashtab_case0(void)
 
     // 
     printf("\n");
-    hashtab_map(h, hash_print2, NULL);
+    hashtab_walkall(h, hash_print2, NULL);
     printf("\n");
 
     hashtab_stat(h, &stat);
@@ -112,7 +112,7 @@ void test_hashtab_case0(void)
     CU_ASSERT(hashtab_delete(h, (void *)10) == NULL);
 
     printf("\n");
-    hashtab_map(h, hash_print2, NULL);
+    hashtab_walkall(h, hash_print2, NULL);
     printf("\n");
     
     hashtab_stat(h, &stat);
@@ -130,7 +130,7 @@ void test_hashtab_case0(void)
     CU_ASSERT(((test_hashtab_node_t *)hashtab_search(h, (void *)10))->value == 10 + 100);
 
     printf("\n");
-    hashtab_map(h, hash_print2, NULL);
+    hashtab_walkall(h, hash_print2, NULL);
     printf("\n");
 
     hashtab_stat(h, &stat);
