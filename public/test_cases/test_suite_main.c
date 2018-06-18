@@ -17,6 +17,7 @@ extern CU_TestInfo test_cmm_cases[];
 extern CU_TestInfo test_log_cases[];
 extern CU_TestInfo test_radix_tree_cases[];
 extern CU_TestInfo test_hashtab_cases[];
+extern CU_TestInfo test_obs_event_cases[];
 
   
 // suite初始化过程 
@@ -42,6 +43,7 @@ CU_SuiteInfo suites[]
     {"test_log_suite", suite_success_init, suite_success_clean, test_log_cases},  
     {"test_radix_tree_suite", suite_success_init, suite_success_clean, test_radix_tree_cases},  
     {"test_hashtab_suite", suite_success_init, suite_success_clean, test_hashtab_cases},  
+    {"test_obs_event_cases", suite_success_init, suite_success_clean, test_obs_event_cases},  
     CU_SUITE_INFO_NULL  
 };  
   

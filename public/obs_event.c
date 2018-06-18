@@ -36,20 +36,9 @@ History:
     1. Primary version
 *******************************************************************************/
 
+#include "os_adapter.h"
 
-// 观察者结构定义
-typedef struct obs_observer
-{  
-    observer_func_t func; // 观察者信息
-    struct obs_observer *next;
-} obs_observer_t;   
-
-// 事件结构定义
-typedef struct obs_event
-{
-    uint32_t max_event_id;
-    obs_observer_t **observers; // [max_event_id]观察者列表
-} obs_event_t;
+#include "obs_event.h"
 
 
 void destroy_obs_event(obs_event_t *event)
@@ -62,7 +51,7 @@ void destroy_obs_event(obs_event_t *event)
     uint32_t event_id;
     for (event_id = 0; event_id < event->max_event_id; event_id++)
     {
-        obs_observer_t *cur = obs_event->observers[event_id];
+        obs_observer_t *cur = event->observers[event_id];
         if (cur == NULL)
         {
             continue;
@@ -80,20 +69,30 @@ void destroy_obs_event(obs_event_t *event)
 
 int create_obs_event(uint32_t max_event_id, obs_event_t **obs_event)
 {
-    obs_event_t *tmp_events = OS_MALLOC(max_event_id * sizeof(obs_event_t));
-    if (tmp_events == NULL)
+    obs_event_t *tmp_event = OS_MALLOC(sizeof(obs_event_t));
+    if (tmp_event == NULL)
     {
         return -ERR_EVENT_NO_MEMORY;
     }
 
-    memset(tmp_events, 0, max_event_id * sizeof(obs_event_t));
-    tmp_events->max_event_id = max_event_id;
+    memset(tmp_event, 0, sizeof(obs_event_t));
+    tmp_event->max_event_id = max_event_id;
+    
+    obs_observer_t **observers = OS_MALLOC(max_event_id * sizeof(obs_observer_t *));
+    if (observers == NULL)
+    {
+        OS_FREE(tmp_event);
+        return -ERR_EVENT_NO_MEMORY;
+    }
 
-    *obs_event = tmp_events;
+    memset(observers, 0, max_event_id * sizeof(obs_observer_t *));
+    tmp_event->observers = observers;
+
+    *obs_event = tmp_event;
     return 0;
 }
 
-int register_obs_event(obs_event_t *obs_event, EVENT_ID_E event_id, observer_func_t func)
+int register_obs_event(obs_event_t *obs_event, uint32_t event_id, observer_func_t func)
 {
     if (obs_event == NULL)
     {
@@ -117,7 +116,7 @@ int register_obs_event(obs_event_t *obs_event, EVENT_ID_E event_id, observer_fun
     obs_observer_t *cur = obs_event->observers[event_id];
     if (cur == NULL)
     {
-        cur = new_obs;
+        obs_event->observers[event_id] = new_obs;
         return 0;
     }
     
@@ -130,7 +129,7 @@ int register_obs_event(obs_event_t *obs_event, EVENT_ID_E event_id, observer_fun
     return 0;
 }
 
-void notify_obs_event(obs_event_t *obs_event, EVENT_ID_E event_id, void *arg)
+int notify_obs_event(obs_event_t *obs_event, uint32_t event_id, void *arg)
 {
     if (obs_event == NULL)
     {
@@ -150,6 +149,8 @@ void notify_obs_event(obs_event_t *obs_event, EVENT_ID_E event_id, void *arg)
             cur = cur->next;
         } while (cur != NULL);
     }
+
+    return 0;
 }
 
 
@@ -173,14 +174,24 @@ int create_obs_event_single(uint32_t max_event_id)
     return create_obs_event(max_event_id, &g_obs_event);
 }
 
-int register_obs_event_single(EVENT_ID_E event_id, observer_func_t func)
+int register_obs_event_single(uint32_t event_id, observer_func_t func)
 {
     return register_obs_event(g_obs_event, event_id, func);
 }
 
-void notify_obs_event_single(obs_event_t *obs_event, EVENT_ID_E event_id, void *arg)
+int notify_obs_event_single(uint32_t event_id, void *arg)
 {
-    return notify_obs_event(g_obs_event, event_id);
+    return notify_obs_event(g_obs_event, event_id, arg);
+}
+
+void destroy_obs_event_single(void)
+{
+    if (g_obs_event == NULL)
+        return;
+    
+    destroy_obs_event(g_obs_event);
+    g_obs_event = NULL;
+
 }
 
 #endif
