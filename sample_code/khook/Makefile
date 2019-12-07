@@ -1,6 +1,7 @@
-obj-m = myhook.o
+obj-m = hooktest.o
 
-myhook-y += khook.o
+hooktest-y += khook_test.o
+hooktest-y += khook.o
 
 KDIR = /lib/modules/$(shell uname -r)/build
 PWD  = $(shell pwd)

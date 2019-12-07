@@ -1,107 +1,90 @@
 #include <linux/kernel.h>
-#include <linux/kallsyms.h>
+#include <linux/kprobes.h>
 #include <linux/cpu.h>
 #include <linux/module.h>
 
-#include <net/tcp.h>
+#include "khook.h"
 
-#define OPTSIZE	5
-
-// orig_opä¿origå‡½æ•°çš„å…¥å£æŒ‡ä»¤
-char orig_op[OPTSIZE] = {0};
-// hook_opä¿å­˜è·³è½¬åˆ°hookå‡½æ•°çš„æŒ‡ä»¤
-char hook_op[OPTSIZE] = {0};
-// stub_opä¿å­˜è·³è½¬origå‡½æ•°çš„æŒ‡ä»¤
-char stub_op[OPTSIZE] = {0};
-
-// stubå‡½æ•°å…¥å£æŒ‡é’ˆï¼Œè°ƒç”¨stubå‡½æ•°ç›¸å½“äºè°ƒç”¨origå‡½æ•°
-static unsigned int (*stub_func_ptr)(const struct nf_hook_ops *, struct sk_buff *, const struct net_device *, const struct net_device *, const struct nf_hook_state *);
-// origå‡½æ•°å…¥å£æŒ‡é’ˆï¼Œå…¶å…¥å£æŒ‡ä»¤ä¼šè¢«æ›¿æ¢æ‰ï¼Œjmpåˆ°hookå‡½æ•°
-static unsigned int (*orig_func_ptr)(const struct nf_hook_ops *, struct sk_buff *, const struct net_device *, const struct net_device *, const struct nf_hook_state *);
-// hookå‡½æ•°å…¥å£æŒ‡é’ˆï¼Œå®ç°ç”¨æˆ·åŠŸèƒ½ï¼Œå¹¶åœ¨å‡½æ•°ä¸­è°ƒç”¨stubå‡½æ•°ï¼ˆç›¸å½“äºorigå‡½æ•°ï¼‰
-static unsigned int (*hook_func_ptr)(const struct nf_hook_ops *, struct sk_buff *, const struct net_device *, const struct net_device *, const struct nf_hook_state *);
-
-// stubå‡½æ•°ï¼Œå…¶å…¥å£æŒ‡ä»¤ä¼šè¢«æ›¿æ¢ï¼Œè°ƒç”¨æ­¤å‡½æ•°ç›¸å½“äºè°ƒç”¨origå‡½æ•°
-static unsigned int stub_ipv4_conntrack_in(const struct nf_hook_ops *ops, struct sk_buff *skb, const struct net_device *in, const struct net_device *out, const struct nf_hook_state *state)
-{
-	printk("hook stub conntrack\n");
-	return 0;
-}
-
-// hookå‡½æ•°ï¼Œå½“å†…æ ¸åœ¨è°ƒç”¨origå‡½æ•°çš„æ—¶å€™ï¼Œå°†ä¼šåˆ°è¾¾è¿™ä¸ªå‡½æ•°ã€‚
-static unsigned int hook_ipv4_conntrack_in(const struct nf_hook_ops *ops, struct sk_buff *skb, const struct net_device *in, const struct net_device *out, const struct nf_hook_state *state)
-{
-	printk("hook conntrack\n");
-	// ä»…ä»…æ‰“å°ä¸€è¡Œä¿¡æ¯åï¼Œè°ƒç”¨origå‡½æ•°ã€‚
-	return stub_func_ptr(ops, skb, in, out, state);
-}
 
 static void *(*ptr_poke_smp)(void *addr, const void *opcode, size_t len);
 
-static __init int hook_init(void)
+
+int hook_create(khook_t *h, char *orig_func_name, long hook_func_ptr, long stub_func_ptr)
 {
 	s32 hook_offset, orig_offset;
+    long orig_func_ptr;
 
-	// è¿™ä¸ªpokeå‡½æ•°å®Œæˆçš„å°±æ˜¯é‡æ˜ å°„ï¼Œå†™textæ®µçš„äº‹
-	ptr_poke_smp = kallsyms_lookup_name("text_poke_smp");
-	if (!ptr_poke_smp) {
-		printk("err");
-		return -1;
-	}
-
-	// æ‰¾åˆ°è¦hookçš„å‡½æ•°
-	orig_func_ptr = kallsyms_lookup_name("ipv4_conntrack_in");
+	// ÕÒµ½ÒªhookµÄº¯Êı
+	orig_func_ptr = kallsyms_lookup_name(orig_func_name);
 	if (!orig_func_ptr) {
-		printk("err");
+		printk("lookup %s failed\n", orig_func_name);
 		return -1;
 	}
 
-	// ä¿å­˜origå‡½æ•°çš„å…¥å£æŒ‡ä»¤
-	orig_op[0] = ((char*)orig_func_ptr)[0];
-	orig_op[1] = ((char*)orig_func_ptr)[1];
-	orig_op[2] = ((char*)orig_func_ptr)[2];
-	orig_op[3] = ((char*)orig_func_ptr)[3];
-	orig_op[4] = ((char*)orig_func_ptr)[4];
+	// origĞÅÏ¢±£´æ
+    h->orig_func_ptr = orig_func_ptr;
+	// ±£´æorigº¯ÊıµÄÈë¿ÚÖ¸Áî
+	h->orig_op[0] = ((char*)orig_func_ptr)[0];
+	h->orig_op[1] = ((char*)orig_func_ptr)[1];
+	h->orig_op[2] = ((char*)orig_func_ptr)[2];
+	h->orig_op[3] = ((char*)orig_func_ptr)[3];
+	h->orig_op[4] = ((char*)orig_func_ptr)[4];
 
-	// hookä¿¡æ¯åˆå§‹åŒ–
-	hook_func_ptr = hook_ipv4_conntrack_in;
-	// è®¾ç½®ä»origå‡½æ•°è·³è½¬åˆ°hookå‡½æ•°çš„æŒ‡ä»¤
-	// ç¬¬ä¸€ä¸ªå­—èŠ‚å½“ç„¶æ˜¯jump
-	hook_op[0] = 0xe9;
-	// è®¡ç®—ç›®æ ‡hookå‡½æ•°åˆ°origå‡½æ•°çš„ç›¸å¯¹åç§»
-	hook_offset = (s32)((long)hook_func_ptr - (long)orig_func_ptr - OPTSIZE);
-	// åé¢4ä¸ªå­—èŠ‚ä¸ºä¸€ä¸ªç›¸å¯¹åç§»
-	(*(s32*)(&hook_op[1])) = hook_offset;
+	// hookĞÅÏ¢³õÊ¼»¯
+	h->hook_func_ptr = hook_func_ptr;
+	// ÉèÖÃ´Óorigº¯ÊıÌø×ªµ½hookº¯ÊıµÄÖ¸Áî
+	h->hook_op[0] = 0xe9; // µÚÒ»¸ö×Ö½Úµ±È»ÊÇjump
+	// ¼ÆËãÄ¿±êhookº¯Êıµ½origº¯ÊıµÄÏà¶ÔÆ«ÒÆ
+	hook_offset = (s32)(hook_func_ptr - orig_func_ptr - OPTSIZE);
+	// ºóÃæ4¸ö×Ö½ÚÎªÒ»¸öÏà¶ÔÆ«ÒÆ
+	(*(s32*)(&h->hook_op[1])) = hook_offset;
 
-	// stubä¿¡æ¯åˆå§‹åŒ–
-	stub_func_ptr = stub_ipv4_conntrack_in;
-	// è®¾ç½®ä»stubå‡½æ•°è·³è½¬åˆ°origå‡½æ•°çš„æŒ‡ä»¤
-	stub_op[0] = 0xe9;
-	// è®¡ç®—ç›®æ ‡origå‡½æ•°å°†è¦æ‰§è¡Œçš„ä½ç½®åˆ°å½“å‰ä½ç½®çš„åç§»
-	orig_offset = (s32)((long)orig_func_ptr + OPTSIZE - ((long)stub_func_ptr + OPTSIZE));
-	(*(s32*)(&stub_op[1])) = orig_offset;
+	// stubĞÅÏ¢³õÊ¼»¯
+	h->stub_func_ptr = stub_func_ptr;
+	// ÉèÖÃ´Óstubº¯ÊıÌø×ªµ½origº¯ÊıµÄÖ¸Áî
+	h->stub_op[0] = 0xe9; // µÚÒ»¸ö×Ö½Úµ±È»ÊÇjump
+	// ¼ÆËãÄ¿±êorigº¯Êı½«ÒªÖ´ĞĞµÄÎ»ÖÃµ½µ±Ç°Î»ÖÃµÄÆ«ÒÆ
+	orig_offset = (s32)(orig_func_ptr + OPTSIZE - (stub_func_ptr + OPTSIZE));
+	(*(s32*)(&h->stub_op[1])) = orig_offset;
 
 
-	// æ›¿æ¢æ“ä½œï¼
+	// Ìæ»»²Ù×÷£¡
 	get_online_cpus();
-	ptr_poke_smp(stub_func_ptr, stub_op, OPTSIZE); // stubæŒ‡ä»¤ä½œç”¨åœ¨stubå‡½æ•°ä¸Šï¼Œä»¥è·³è½¬åˆ°origå‡½æ•°ä¸Š
+	ptr_poke_smp((void *)stub_func_ptr, h->stub_op, OPTSIZE); // stubÖ¸Áî×÷ÓÃÔÚstubº¯ÊıÉÏ£¬ÒÔÌø×ªµ½origº¯ÊıÉÏ
 	barrier();
-	ptr_poke_smp(orig_func_ptr, hook_op, OPTSIZE); // hookæŒ‡ä»¤ä½œç”¨åœ¨origå‡½æ•°ä¸Šï¼Œä»¥è·³è½¬åˆ°hookå‡½æ•°ä¸Š
+	ptr_poke_smp((void *)orig_func_ptr, h->hook_op, OPTSIZE); // hookÖ¸Áî×÷ÓÃÔÚorigº¯ÊıÉÏ£¬ÒÔÌø×ªµ½hookº¯ÊıÉÏ
 	put_online_cpus();
+
+    return 0;
+}
+
+void hook_destroy(khook_t *h)
+{
+    if (h->orig_func_ptr == 0)
+    {
+        return;
+    }
+    
+	get_online_cpus();
+	ptr_poke_smp((void *)h->orig_func_ptr, h->orig_op, OPTSIZE); // »¹Ô­origº¯ÊıÈë¿ÚÖ¸Áî
+	barrier();
+	put_online_cpus();
+}
+
+int hook_init(void)
+{
+	// Õâ¸öpokeº¯ÊıÍê³ÉµÄ¾ÍÊÇÖØÓ³Éä£¬Ğ´text¶ÎµÄÊÂ
+	ptr_poke_smp = (void *(*)(void *, const void *, size_t))kallsyms_lookup_name("text_poke_smp");
+	if (!ptr_poke_smp) {
+		printk("lookup %s failed\n", "text_poke_smp");
+		return -1;
+	}
 
 	return 0;
 }
-module_init(hook_init);
 
-static __exit void hook_exit(void)
+void hook_exit(void)
 {
-	get_online_cpus();
-	ptr_poke_smp(orig_func_ptr, orig_op, OPTSIZE); // è¿˜åŸorigå‡½æ•°å…¥å£æŒ‡ä»¤
-	barrier();
-	put_online_cpus();
+    
 }
-module_exit(hook_exit);
 
-MODULE_DESCRIPTION("hook test");
-MODULE_LICENSE("GPL");
-MODULE_VERSION("1.1");
